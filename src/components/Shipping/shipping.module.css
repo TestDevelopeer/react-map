@@ -1,0 +1,19 @@
+.shippingContainer {
+   height: max-content;
+}
+
+.resize {
+   position: absolute;
+   display: inline-block;
+   width: 5px;
+   height: 100%;
+   background-color: rgb(94 100 108);
+   z-index: 1;
+   right: 0;
+   cursor: e-resize;
+   top: 0;
+}
+
+.sizeBlock {
+
+}
