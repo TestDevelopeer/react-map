@@ -1,3 +1,11 @@
 .leaflet-routing-container {
   display: none!important;
 }
+
+.leaflet-routing-error {
+  width: 320px;
+  background-color: rgb(238, 153, 164);
+  padding-top: 4px;
+  transition: all 0.2s ease;
+  box-sizing: border-box;
+}

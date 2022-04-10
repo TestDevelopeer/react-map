@@ -1,6 +1,6 @@
-import React, {useEffect, useRef} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {MapContainer, TileLayer, useMap} from 'react-leaflet';
-import {useSelector} from "react-redux";
+import {Button, Modal, Result} from 'antd';
 
 import 'leaflet/dist/leaflet.css';
 import 'leaflet-routing-machine/dist/leaflet-routing-machine.css';
@@ -8,6 +8,8 @@ import s from './map.module.css';
 
 import icon from 'leaflet/dist/images/marker-icon.png';
 import iconShadow from 'leaflet/dist/images/marker-shadow.png';
+import {selectOrder} from "../../../redux/shipping-reducer";
+import {useDispatch} from "react-redux";
 
 const L = require('leaflet');
 require('leaflet-routing-machine');
@@ -25,14 +27,24 @@ const TILE_LAYER_URL = "https://cartodb-basemaps-{s}.global.ssl.fastly.net/light
 const Map = ({isResizing, selectedOrder}) => {
     const btnRef = useRef();
 
+    const [isModalVisible, setIsModalVisible] = useState(false);
+
+    const showModal = () => {
+        setIsModalVisible(true);
+    };
+
+    const handleOk = () => {
+        setIsModalVisible(false);
+    };
+
     const routingControl = L.Routing.control({
         fitSelectedRoutes: true,
         routeWhileDragging: false,
         draggableWaypoints: false,
-        lineOptions : {
+        lineOptions: {
             addWaypoints: false
         },
-        createMarker: function(i, wp, nWps) {
+        createMarker: function (i, wp, nWps) {
             if (selectedOrder !== null) {
                 let cityStart = selectedOrder.cityStart.country + ', ' + selectedOrder.cityStart.city + ', ' + selectedOrder.cityStart.address;
                 let cityEnd = selectedOrder.cityEnd.country + ', ' + selectedOrder.cityEnd.city + ', ' + selectedOrder.cityEnd.address;
@@ -43,11 +55,14 @@ const Map = ({isResizing, selectedOrder}) => {
     });
 
     const MapComponent = () => {
-        let map = useMap();
+        btnRef.current.click();
+        const map = useMap();
+        const dispatch = useDispatch();
+        routingControl.addTo(map).on('routingerror', function (e) {
+            showModal();
+            dispatch(selectOrder(null));
+        });
         if (selectedOrder !== null) {
-            btnRef.current.click();
-            routingControl.addTo(map);
-            console.log(routingControl.getWaypoints().length)
             routingControl.setWaypoints([
                 L.latLng(selectedOrder.cityStart.lat, selectedOrder.cityStart.long),
                 L.latLng(selectedOrder.cityEnd.lat, selectedOrder.cityEnd.long)
@@ -57,13 +72,13 @@ const Map = ({isResizing, selectedOrder}) => {
         }
 
         useEffect(() => {
-            setTimeout(function (){
+            setTimeout(function () {
                 map.invalidateSize();
             }, 100);
         }, []);
 
         useEffect(() => {
-            setTimeout(function (){
+            setTimeout(function () {
                 map.invalidateSize();
             }, 100);
         }, [isResizing]);
@@ -72,14 +87,29 @@ const Map = ({isResizing, selectedOrder}) => {
     }
 
     const clear = () => {
-        routingControl.spliceWaypoints(0,2)
-        console.log(routingControl.getWaypoints().length)
+        routingControl.spliceWaypoints(0, 2)
     }
 
 
     return (
         <>
-            <button ref={btnRef} hidden onClick={clear}></button>
+            <button ref={btnRef} hidden onClick={clear}/>
+            <Modal
+                title="Error"
+                visible={isModalVisible}
+                onOk={handleOk}
+                footer={[
+                    <Button key="submit" type="primary" onClick={handleOk}>
+                        OK
+                    </Button>
+                ]}
+            >
+                <Result
+                    status="error"
+                    title="Route error"
+                    subTitle="An error occurred while building the route, try another route."
+                />
+            </Modal>
             <MapContainer center={[51.505, -0.09]} zoom={8} className={s.map}>
                 <TileLayer
                     attribution={TILE_LAYER_ATTRIBUTION}
