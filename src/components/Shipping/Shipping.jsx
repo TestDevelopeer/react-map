@@ -1,6 +1,6 @@
 import React, {useCallback, useRef, useState} from 'react';
 import ShippingTable from "./ShippingTable/ShippingTable";
-import Map from "./ShippingMap/Map";
+import ShippingMap from "./ShippingMap/ShippingMap";
 import {Col, Row} from "antd";
 import {useSelector} from "react-redux";
 
@@ -45,7 +45,7 @@ const Shipping = () => {
                 <div onMouseDown={mouseDown} className={s.resize}/>
             </Col>
             <Col span={12} ref={sizeMapRef}>
-                <Map isResizing={isResizing} setIsResizing={setIsResizing} selectedOrder={selectedOrder}/>
+                <ShippingMap isResizing={isResizing} setIsResizing={setIsResizing} selectedOrder={selectedOrder}/>
             </Col>
         </Row>
     );
