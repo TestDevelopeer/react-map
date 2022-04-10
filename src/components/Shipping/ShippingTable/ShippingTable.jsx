@@ -1,16 +1,18 @@
 import React, {useEffect, useState} from 'react';
-import { Table, Select } from 'antd';
+import {Table, Select} from 'antd';
 import {useDispatch, useSelector} from "react-redux";
 import {changeAddressFrom, changeAddressTo, getAddress, getOrders, selectOrder} from "../../../redux/shipping-reducer";
 
+const {Option} = Select;
+
 const ShippingTable = () => {
-    const { Option } = Select;
     const [isLoading, setIsLoading] = useState(true);
+
+    const dispatch = useDispatch();
 
     const orders = useSelector(state => state.shippingReducer.orders);
     const address = useSelector(state => state.shippingReducer.address);
     const selectedOrder = useSelector(state => state.shippingReducer.selectedOrder);
-    const dispatch = useDispatch();
 
     useEffect(() => {
         dispatch(getOrders());
@@ -35,47 +37,72 @@ const ShippingTable = () => {
         {
             title: 'Address from',
             dataIndex: 'cityStart',
-            render: from => {
-                return <Select disabled={!selectedOrder || selectedOrder.key !== from.key} defaultValue={`${from.country}, ${from.city}, ${from.address}`} onChange={handleChangeFrom}>
-                    {address.length > 1 && address.map((add, index) => {
-                        return <Option key={from.key + '_from_' + add.key} value={index}>{add.country + ', ' + add.city + ', ' + add.address}</Option>
-                    })}
-                </Select>
+            render: (from) => {
+                return (
+                    <Select
+                        disabled={!selectedOrder || selectedOrder.key !== from.key}
+                        defaultValue={`${from.country}, ${from.city}, ${from.address}`}
+                        onChange={handleChangeFrom}
+                    >
+                        {
+                            address.length > 1 && address.map((addr, index) => {
+                                return (
+                                    <Option
+                                        key={`${from.key}_from_${addr.key}`}
+                                        value={index}
+                                    >
+                                        {`${addr.country}, ${addr.city}, ${addr.address}`}
+                                    </Option>
+                                );
+                            })
+                        }
+                    </Select>
+                );
             },
             width: 200,
             minWidth: 100
-        },
-        {
+        }, {
             title: 'Address to',
             dataIndex: 'cityEnd',
-            render: to => {
-                return <Select disabled={!selectedOrder || selectedOrder.key !== to.key} defaultValue={`${to.country}, ${to.city}, ${to.address}`} onChange={handleChangeTo}>
-                    {address.length > 1 && address.map((add, index) => {
-                        return <Option key={to.key + '_to_' + add.key} value={index}>{add.country + ', ' + add.city + ', ' + add.address}</Option>
-                    })}
-                </Select>
+            render: (to) => {
+                return (
+                    <Select
+                        disabled={!selectedOrder || selectedOrder.key !== to.key}
+                        defaultValue={`${to.country}, ${to.city}, ${to.address}`}
+                        onChange={handleChangeTo}
+                    >
+                        {
+                            address.length > 1 && address.map((addr, index) => {
+                                return (
+                                    <Option key={`${to.key}_to_${addr.key}`}
+                                            value={index}
+                                    >
+                                        {`${addr.country}, ${addr.city}, ${addr.address}`}
+                                    </Option>
+                                )
+                            })
+                        }
+                    </Select>
+                );
             },
             width: 200,
             minWidth: 120
-        },
-        {
+        }, {
             title: 'Email',
             dataIndex: 'email',
             width: 200,
             minWidth: 120
-        },
-        {
+        }, {
             title: 'Phone',
             dataIndex: 'phone',
             width: 200,
             minWidth: 120
-        },
-        {
+        }, {
             title: 'Full Name',
             dataIndex: 'fullName',
             width: 200,
             minWidth: 120
-        },
+        }
     ];
 
     const rowSelection = {

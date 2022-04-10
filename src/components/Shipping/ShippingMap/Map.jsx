@@ -1,15 +1,14 @@
 import React, {useEffect, useRef, useState} from 'react';
 import {MapContainer, TileLayer, useMap} from 'react-leaflet';
 import {Button, Modal, Result} from 'antd';
+import {selectOrder} from "../../../redux/shipping-reducer";
+import {useDispatch, useSelector} from "react-redux";
 
 import 'leaflet/dist/leaflet.css';
 import 'leaflet-routing-machine/dist/leaflet-routing-machine.css';
-import s from './map.module.css';
-
 import icon from 'leaflet/dist/images/marker-icon.png';
 import iconShadow from 'leaflet/dist/images/marker-shadow.png';
-import {selectOrder} from "../../../redux/shipping-reducer";
-import {useDispatch} from "react-redux";
+import s from './map.module.css';
 
 const L = require('leaflet');
 require('leaflet-routing-machine');
@@ -18,16 +17,15 @@ const DefaultIcon = L.icon({
     iconUrl: icon,
     shadowUrl: iconShadow
 });
-
 L.Marker.prototype.options.icon = DefaultIcon;
 
 const TILE_LAYER_ATTRIBUTION = "Map tiles by Carto, under CC BY 3.0. Data by OpenStreetMap, under ODbL";
 const TILE_LAYER_URL = "https://cartodb-basemaps-{s}.global.ssl.fastly.net/light_all/{z}/{x}/{y}.png";
 
-const Map = ({isResizing, selectedOrder}) => {
-    const btnRef = useRef();
-
+const Map = ({isResizing}) => {
     const [isModalVisible, setIsModalVisible] = useState(false);
+    const selectedOrder = useSelector(state => state.shippingReducer.selectedOrder);
+    const btnRef = useRef();
 
     const showModal = () => {
         setIsModalVisible(true);
@@ -44,12 +42,11 @@ const Map = ({isResizing, selectedOrder}) => {
         lineOptions: {
             addWaypoints: false
         },
-        createMarker: function (i, wp, nWps) {
+        createMarker: function (i, wp) {
             if (selectedOrder !== null) {
-                let cityStart = selectedOrder.cityStart.country + ', ' + selectedOrder.cityStart.city + ', ' + selectedOrder.cityStart.address;
-                let cityEnd = selectedOrder.cityEnd.country + ', ' + selectedOrder.cityEnd.city + ', ' + selectedOrder.cityEnd.address;
-                return L.marker(wp.latLng)
-                    .bindPopup(i === 0 ? cityStart : cityEnd);
+                let cityStart = `${selectedOrder.cityStart.country}, ${selectedOrder.cityStart.city}, ${selectedOrder.cityStart.address}`;
+                let cityEnd = `${selectedOrder.cityEnd.country}, ${selectedOrder.cityEnd.city}, ${selectedOrder.cityEnd.address}`;
+                return L.marker(wp.latLng).bindPopup(i === 0 ? cityStart : cityEnd);
             }
         }
     });
@@ -57,39 +54,35 @@ const Map = ({isResizing, selectedOrder}) => {
     const MapComponent = () => {
         btnRef.current.click();
         const map = useMap();
+        map.invalidateSize();
         const dispatch = useDispatch();
+
         routingControl.addTo(map).on('routingerror', function (e) {
             showModal();
             dispatch(selectOrder(null));
         });
-        if (selectedOrder !== null) {
-            routingControl.setWaypoints([
-                L.latLng(selectedOrder.cityStart.lat, selectedOrder.cityStart.long),
-                L.latLng(selectedOrder.cityEnd.lat, selectedOrder.cityEnd.long)
-            ]);
-            routingControl.route(map);
+
+        useEffect(() => {
+            if (selectedOrder !== null) {
+                routingControl.setWaypoints([
+                    L.latLng(selectedOrder.cityStart.lat, selectedOrder.cityStart.long),
+                    L.latLng(selectedOrder.cityEnd.lat, selectedOrder.cityEnd.long)
+                ]);
+                routingControl.route(map);
+                map.invalidateSize();
+            }
+        }, [selectedOrder]);
+
+        useEffect(() => {
             map.invalidateSize();
-        }
-
-        useEffect(() => {
-            setTimeout(function () {
-                map.invalidateSize();
-            }, 100);
-        }, []);
-
-        useEffect(() => {
-            setTimeout(function () {
-                map.invalidateSize();
-            }, 100);
         }, [isResizing]);
 
         return null;
     }
 
     const clear = () => {
-        routingControl.spliceWaypoints(0, 2)
+        routingControl.spliceWaypoints(0, 2);
     }
-
 
     return (
         <>

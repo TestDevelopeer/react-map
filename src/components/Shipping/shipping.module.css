@@ -1,7 +1,3 @@
-.shippingContainer {
-   height: max-content;
-}
-
 .resize {
    position: absolute;
    display: inline-block;
@@ -12,8 +8,4 @@
    right: 0;
    cursor: e-resize;
    top: 0;
-}
-
-.sizeBlock {
-
 }
